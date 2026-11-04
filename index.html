@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fumes – Am I spending too fast?</title>
+<meta name="description" content="Fumes shows, in one glance, whether your money is on track to last. Green, amber or red. No numbers to decode.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%2312151b'/%3E%3Cpath d='M6 22a10 10 0 0 1 20 0' fill='none' stroke='%23639922' stroke-width='4' stroke-linecap='round'/%3E%3Cpath d='M16 22 11 13' stroke='%23eef1f6' stroke-width='2.5' stroke-linecap='round'/%3E%3C/svg%3E">
+<style>
+  /* Colours and gauge gaps match the prototype (prototype/index.html). System fonts only: no third-party
+     requests, so the privacy policy's "not shared with third parties" stays true here too. */
+  :root {
+    --bg: #eef0f3; --panel: #ffffff; --text: #1a1e24; --muted: #5b6472; --line: #dde1e6;
+    --green: #639922; --amber: #EF9F27; --red: #E24B4A; --needle: #1a1e24;
+    --screen: #d6d8dd; --frame: #2b2c30; --frame-edge: #8e9097;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #12151b; --panel: #1b2029; --text: #eef1f6; --muted: #8b93a1; --line: #2a3038;
+      --needle: #f4f6f9;
+      --screen: #0b0d10; --frame: #1f2024; --frame-edge: #4a4c52;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--text);
+    font: 17px/1.55 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  main { max-width: 640px; margin: 0 auto; padding: 32px 16px 48px; }
+  .brand { font-weight: 700; font-size: 40px; line-height: 1.1; letter-spacing: -0.02em; text-align: center; margin: 0; }
+  .tagline { text-align: center; color: var(--muted); font-size: 17px; margin: 6px 0 0; }
+
+  .hero { text-align: center; padding: 40px 0 8px; }
+  /* Top of a phone, cut off straight under the gauge (screen halfway between the first two drafts). The screen is a touch darker than the page,
+     so the cut edge reads as a line rather than fading into the background. */
+  .phone {
+    position: relative; width: min(300px, 80vw); margin: 0 auto 32px; padding: 9px 9px 0;
+    background: var(--frame); border-radius: 54px 54px 0 0;
+    box-shadow: inset 0 0 0 1.5px var(--frame-edge);
+  }
+  /* Shadow along the cut, 40px wider than the phone on each side, so the page reads as a sheet
+     of paper with the phone peeking out from behind it. */
+  .phone::after {
+    content: ""; position: absolute; left: -40px; right: -40px; top: 100%; height: 26px;
+    background: radial-gradient(ellipse 50% 100% at 50% 0, rgba(0,0,0,.20), rgba(0,0,0,0) 100%);
+    pointer-events: none;
+  }
+  .hero { overflow-x: clip; } /* keeps the wide shadow from causing sideways scroll on phones */
+  .screen {
+    position: relative; background: var(--screen); border-radius: 45px 45px 0 0;
+    padding: 14px 20px 22px; overflow: hidden;
+  }
+  .statusbar {
+    display: flex; justify-content: space-between; align-items: center;
+    height: 24px; padding: 0 14px; font-size: 14px; font-weight: 600; color: var(--text);
+  }
+  .statusbar svg { display: block; fill: currentColor; }
+  .statusbar .icons { display: flex; gap: 5px; align-items: center; }
+  .island {
+    position: absolute; top: 12px; left: 50%; transform: translateX(-50%);
+    width: 32%; height: 28px; border-radius: 20px; background: #000;
+  }
+  .gauge { width: 100%; height: auto; display: block; margin-top: 30px; }
+  .needle-group { transform-origin: 100px 100px; animation: sway 6s ease-in-out infinite; }
+  @keyframes sway { 0%, 100% { transform: rotate(-52deg); } 50% { transform: rotate(-38deg); } }
+  @media (prefers-reduced-motion: reduce) { .needle-group { animation: none; transform: rotate(-45deg); } }
+
+  h1 { font-size: clamp(30px, 7vw, 42px); line-height: 1.15; letter-spacing: -0.02em; margin: 0 0 14px; }
+  .lead { color: var(--muted); font-size: 19px; margin: 0 auto; max-width: 30em; }
+
+  .points { list-style: none; padding: 0; margin: 44px 0 0; display: grid; gap: 12px; }
+  .points li { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 16px 18px; }
+  .points strong { display: block; margin-bottom: 2px; }
+  .points span { color: var(--muted); font-size: 16px; }
+  .points a { color: var(--text); text-underline-offset: 2px; }
+
+  .status {
+    margin: 32px 0 0; text-align: center; color: var(--muted); font-size: 15px;
+  }
+  .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--amber); margin-right: 6px; vertical-align: 1px; }
+
+  footer {
+    margin-top: 56px; padding-top: 16px; border-top: 1px solid var(--line);
+    color: var(--muted); font-size: 14px; display: flex; flex-wrap: wrap; gap: 6px 18px;
+  }
+  footer a { color: inherit; }
+  footer .spacer { flex: 1; }
+</style>
+</head>
+<body>
+<main>
+  <p class="brand">Fumes</p>
+  <p class="tagline">One gauge to rule your spending</p>
+
+  <section class="hero">
+    <div class="phone">
+      <div class="screen">
+        <div class="island"></div>
+        <div class="statusbar">
+          <span>9:41</span>
+          <span class="icons">
+            <svg width="17" height="11" viewBox="0 0 17 11"><rect x="0" y="7" width="3" height="4" rx="1"/><rect x="4.5" y="5" width="3" height="6" rx="1"/><rect x="9" y="2.5" width="3" height="8.5" rx="1"/><rect x="13.5" y="0" width="3" height="11" rx="1"/></svg>
+            <svg width="25" height="12" viewBox="0 0 25 12"><rect x="0.5" y="0.5" width="21" height="11" rx="3.5" fill="none" stroke="currentColor" opacity=".4"/><rect x="2" y="2" width="16" height="8" rx="2"/><rect x="22.5" y="4" width="1.5" height="4" rx=".75" opacity=".4"/></svg>
+          </span>
+        </div>
+    <svg class="gauge" viewBox="0 0 200 112" role="img" aria-label="A gauge with green, amber and red zones; the needle points into the green.">
+      <path d="M 20.00 100.00 A 80 80 0 0 1 91.02 20.51" fill="none" stroke="var(--green)" stroke-width="14" stroke-linecap="round"/>
+      <path d="M 108.98 20.51 A 80 80 0 0 1 128.09 25.09" fill="none" stroke="var(--amber)" stroke-width="14" stroke-linecap="round"/>
+      <path d="M 144.09 33.25 A 80 80 0 0 1 180.00 100.00" fill="none" stroke="var(--red)" stroke-width="14" stroke-linecap="round"/>
+      <g class="needle-group">
+        <polygon points="104,100 101,38 99,38 96,100" fill="var(--needle)"/>
+      </g>
+      <circle cx="100" cy="100" r="7" fill="var(--needle)"/>
+    </svg>
+      </div>
+    </div>
+
+    <h1>Am I spending too fast?</h1>
+    <p class="lead">One glance tells you whether your money is on track to last. Green, amber or red. No numbers to decode.</p>
+  </section>
+
+  <ul class="points">
+    <li><strong>Green, amber, red</strong><span>Green: you’re doing fine. Amber: ease off a little. Red: time to hit the brakes.</span></li>
+    <li><strong>Made for the moment you decide</strong><span>A coffee, a night out, something on sale. Check the gauge and know in a second.</span></li>
+    <li><strong>Read-only bank connection</strong><span>Through <a href="https://enablebanking.com/" rel="noopener">Enable Banking</a>, a licensed account information provider. Fumes can see, never pay.</span></li>
+  </ul>
+
+  <p class="status"><span class="dot"></span>In development. Not available yet.</p>
+
+  <footer>
+    <span>© 2026 Fumes</span>
+    <span class="spacer"></span>
+    <a href="privacy.html">Privacy</a>
+    <a href="terms.html">Terms</a>
+    <a href="mailto:macrame.upping.0e@icloud.com">Contact</a>
+  </footer>
+</main>
+</body>
+</html>
